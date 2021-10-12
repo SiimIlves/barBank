@@ -1,0 +1,233 @@
+openapi: 3.0.2
+info:
+  title: BarBank
+  version: 1.0.0
+paths:
+  /users:
+    summary: Path used to manage the list of users.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `user` entities.  This path contains a
+      `GET` and `POST` operation to perform the list and create tasks, respectively.
+    post:
+      requestBody:
+        description: A new `user` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+        required: true
+      tags:
+        - users
+      responses:
+        '201':
+          description: Successful response.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Parameter missing:
+                  value:
+                    error: >-
+                      user validation failed: (?<parameterName>[^:]+): Path
+                      `(?<parameterNameAgain>[^`]+)` is required.(, ([^:]+): Path
+                      `([^`]+)` is required.){0,2}
+          description: Parameter missing
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Username already exists:
+                  value:
+                    error: Username already exists
+          description: Username already exists
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Parameter(s) value too short/long:
+                  value: |-
+                    {
+                        "error": "Path `(?<parameterName>.+)` \\(`(?<sampleValue>.+)`\\) is (longer|shorter) than the (maximum|minimum) allowed length \\((?<requiredLength>\\d+)\\)"
+                    }
+          description: Parameter(s) value too short/long
+      operationId: createuser
+      summary: Create a user
+      description: Creates a new instance of a `user`.
+  /sessions:
+    summary: Path used to manage the list of sessions.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `session` entities.  This path
+      contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    post:
+      requestBody:
+        description: A new `session` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+            examples:
+              POST /sessions request:
+                value:
+                  username: tere
+                  password: qwerty1234
+        required: true
+      tags:
+        - sessions
+      responses:
+        '200':
+          description: Successful login
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Required parameter missing:
+                  value:
+                    error: Required parameter missing
+          description: Required parameter missing
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid credentials:
+                  value:
+                    error: Invalid credentials
+          description: Invalid token
+      operationId: createsession
+      summary: Create a session
+      description: Creates a new instance of a `session`.
+    delete:
+      tags:
+        - sessions
+      responses:
+        '204':
+          description: Session successfuly deleted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid authorization format:
+                  value:
+                    error: Invalid authorization format
+          description: Invalid authorization format
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid token:
+                  value:
+                    error: Invalid token
+                Missing authorization:
+                  value:
+                    error: Missing authorization
+          description: Invalid token
+      security:
+        - Bearer: [ ]
+      summary: Deletes a session
+      description: Deletes given `session` with an id specified in authorization header
+  /users/current:
+    get:
+      tags:
+        - users
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+              examples:
+                GET /users/current response:
+                  value:
+                    accounts:
+                      - balance: 10000
+                        currency: EUR
+                        name: Main
+                        number: gbhhj3gbfwjc
+                        userId: 616564d44d8d8b977b16e1e4
+                    name: TereMi
+                    username: mina13
+          description: Successful request
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid authorization format:
+                  value:
+                    error: Invalid authorization format
+          description: Bad request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Missing authorization:
+                  value:
+                    error: Missing authorization
+                Invalid token:
+                  value:
+                    error: Invalid token
+          description: Unauthorized
+      security:
+        - Bearer: [ ]
+      summary: Get active user data
+      description: Returns active `user` data
+components:
+  schemas:
+    user:
+      title: Root Type for user
+      description: ''
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+      example:
+        username: miki
+        password: plutoonium123
+        name: Miki Hiir
+    error:
+      title: Root Type for error
+      description: ''
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: some text
+    session:
+      title: Root Type for session
+      description: ''
+      type: object
+      properties:
+        token:
+          type: string
+      example:
+        token: 6162e76dcc5e898fbab9cfd8
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      type: http
+tags:
+  - name: users
+    description: ''
+  - name: sessions
+    description: ''
